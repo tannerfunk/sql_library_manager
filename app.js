@@ -71,7 +71,7 @@ app.use((err, req, res, next) => {
   });
 
 
-//this came like this
+//this is from using-sequelize-orm-with-express
 // // catch 404 and forward to error handler
 // app.use(function(req, res, next) {
 //   next(createError(404));
