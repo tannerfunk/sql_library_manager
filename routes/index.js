@@ -10,8 +10,8 @@ function asyncHandler(cb){
   return async(req, res, next) => {
     try {
       await cb(req, res, next)
-    } catch (error) {
-      res.status(500).send(error);
+    } catch (err) {
+      next(err);
     }
   }
 }
@@ -46,7 +46,7 @@ router.post('/books/new', asyncHandler(async (req, res) => {
   } catch(error){
     if(error.name === 'SequelizeValidationError') {
       book = await Book.build(req.body);
-      res.render('books/new', {book, errors: error.errors, title: "New Book"})
+      res.render('new-book', {book, errors: error.errors, title: "New Book"})
     } else {
       throw error;
     }
@@ -59,20 +59,38 @@ router.get('/books/:id', asyncHandler(async (req, res) => {
   if (book) {
     res.render('update-book', { book: book, title: "Update: " + book.title } );
   } else {
-    res.sendStatus(404);
+    const error = new Error();
+    error.status = 404;
+    res.render('page-not-found');
+    //res.sendStatus(404);
   }
   
 }));
 
 //updates book info in the database
 router.post('/books/:id', asyncHandler(async (req, res) => {
-  const book = await Book.findByPk(req.params.id);
-  if(book){
-    await book.update(req.body);
-    res.redirect('/books');
-  } else {
-    res.sendStatus(404);
+  let book;
+  try {
+    book = await Book.findByPk(req.params.id);
+    if(book){
+      await book.update(req.body);
+      res.redirect('/books');
+    } else {
+      const error = new Error();
+      error.status = 404;
+      res.render('page-not-found');
+      // res.sendStatus(404);
+    }
+  } catch (error) {
+    if(error.name === "SequelizeValidationError") {
+      book = await Book.build(req.body);
+      book.id = req.params.id;
+      res.render('update-book', {book, errors: error.errors, title: "Update: " + book.title })  
+    } else {
+      throw error;
+    }
   }
+  
 
 }));
 
@@ -83,7 +101,10 @@ router.get('/books/:id/delete', asyncHandler(async (req, res) => {
   if(book){
     res.render('delete', { book: book } );
   } else {
-    res.sendStatus(404);
+    const error = new Error();
+    error.status = 404;
+    res.render('page-not-found');
+    // res.sendStatus(404);
   }
   
 }));
@@ -95,7 +116,10 @@ router.post("/books/:id/delete", asyncHandler(async (req, res) => {
     await book.destroy();
     res.redirect('/');
   } else {
-    res.sendStatus(404);
+    // res.sendStatus(404);
+    const error = new Error();
+    error.status = 404;
+    res.render('page-not-found');
   }
 
 }));
