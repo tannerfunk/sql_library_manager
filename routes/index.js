@@ -26,7 +26,7 @@ router.get('/', asyncHandler(async (req, res) => {
 router.get('/books', asyncHandler(async (req, res) => {
   const books = await Book.findAll();
   //this is finding ALL the books and then passing the "books" as an arguement that holds what it found (which was ALL books)
-  res.render('index', { books });
+  res.render('index', { books, title: "Library" });
 }));
 
 //shows the create new book form
@@ -46,6 +46,7 @@ router.post('/books/new', asyncHandler(async (req, res) => {
   } catch(error){
     if(error.name === 'SequelizeValidationError') {
       book = await Book.build(req.body);
+      //sends it the error data to display using the error view
       res.render('new-book', {book, errors: error.errors, title: "New Book"})
     } else {
       throw error;
@@ -99,7 +100,7 @@ router.post('/books/:id', asyncHandler(async (req, res) => {
 router.get('/books/:id/delete', asyncHandler(async (req, res) => {
   const book = await Book.findByPk(req.params.id);
   if(book){
-    res.render('delete', { book: book } );
+    res.render('delete', { book: book, title: "Delete?" } );
   } else {
     const error = new Error();
     error.status = 404;
