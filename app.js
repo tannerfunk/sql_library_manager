@@ -64,6 +64,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   if (err.status != 404) {
     res.locals.error = err;
+    err.message = "Sorry! There was an unexpected error on the server.";
     res.status(err.status);
     res.render('error', err);
   }

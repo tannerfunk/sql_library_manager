@@ -19,43 +19,85 @@ function asyncHandler(cb){
 /* GET home page. */
 // FIND ALL BOOKS
 router.get('/', asyncHandler(async (req, res) => {
-  
-  //console.log(books);
   res.redirect('/books');
 }));
 
 //Render books page
 router.get('/books', asyncHandler(async (req, res) => {
   const books = await Book.findAll();
-  //somehow render it to json and then pass the whole thing into the template
+  //this is finding ALL the books and then passing the "books" as an arguement that holds what it found (which was ALL books)
   res.render('index', { books });
 }));
 
 //shows the create new book form
 router.get('/books/new', asyncHandler(async (req, res) => {
-  //not sure
-  res.render('new-book');
+  //TBH I don't know why we put the empty locals object..
+  res.render('new-book', { book: {}, title: "New Book" });
 }));
 
 //posts a new book to the database
 router.post('/books/new', asyncHandler(async (req, res) => {
-  // something
+  let book;
+  try {
+    book = await Book.create(req.body);
+    // the request body holds the information in the form as an object
+    //sequelize generates an autoincrementing id for each model instance (entry) created
+    res.redirect('/books');
+  } catch(error){
+    if(error.name === 'SequelizeValidationError') {
+      book = await Book.build(req.body);
+      res.render('books/new', {book, errors: error.errors, title: "New Book"})
+    } else {
+      throw error;
+    }
+  }
 }));
 
 //shows book detail form
 router.get('/books/:id', asyncHandler(async (req, res) => {
-  // somethinggg
-  res.render('update-book' );
+  const book = await Book.findByPk(req.params.id);
+  if (book) {
+    res.render('update-book', { book: book, title: "Update: " + book.title } );
+  } else {
+    res.sendStatus(404);
+  }
+  
 }));
 
 //updates book info in the database
 router.post('/books/:id', asyncHandler(async (req, res) => {
-  // somethinggg
+  const book = await Book.findByPk(req.params.id);
+  if(book){
+    await book.update(req.body);
+    res.redirect('/books');
+  } else {
+    res.sendStatus(404);
+  }
+
+}));
+
+
+//shows book delete form
+router.get('/books/:id/delete', asyncHandler(async (req, res) => {
+  const book = await Book.findByPk(req.params.id);
+  if(book){
+    res.render('delete', { book: book } );
+  } else {
+    res.sendStatus(404);
+  }
+  
 }));
 
 //delete book!
-router.post('/books:id/delete', asyncHandler(async (req, res) => {
-  // somethinggg
+router.post("/books/:id/delete", asyncHandler(async (req, res) => {
+  const book = await Book.findByPk(req.params.id);
+  if(book){
+    await book.destroy();
+    res.redirect('/');
+  } else {
+    res.sendStatus(404);
+  }
+
 }));
 
 

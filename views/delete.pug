@@ -1,0 +1,12 @@
+extends layout
+
+block content
+    h1 Are you sure you want to delete #{book.title}?
+    p This can't be undone.
+
+
+    form(method='post' action='/books/' + book.id + '/delete')
+        p
+            a.button(href='/books/'+book.id) No, please no!
+        p
+            input(type='submit' value="End this book's career")
